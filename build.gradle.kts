@@ -28,7 +28,6 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-web")
-	implementation("org.springframework.boot:spring-boot-starter-validation")
 	compileOnly("org.projectlombok:lombok")
 	runtimeOnly("com.h2database:h2")
 	runtimeOnly("com.mysql:mysql-connector-j")
@@ -36,9 +35,6 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.security:spring-security-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-	// WebSocket, STOMP
-	implementation("org.springframework.boot:spring-boot-starter-websocket:3.4.1")
-
 }
 
 tasks.withType<Test> {
