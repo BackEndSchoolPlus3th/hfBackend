@@ -92,9 +92,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     // Comment -> CommentDto 변환
-    @Override
-    @Transactional
-    public CommentDto convertToDto(Comment comment) {
+    private CommentDto convertToDto(Comment comment) {
         return new CommentDto(
                 comment.getMember().getId(),
                 comment.getMember().getNickname(),

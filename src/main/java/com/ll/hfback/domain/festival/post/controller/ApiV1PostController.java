@@ -46,4 +46,12 @@ public class ApiV1PostController {
 
         return posts;
     }
+
+    // 사용자 위치순으로 게시글 조회
+    @GetMapping("/view")
+    public List<PostDto> areaPosts(@RequestParam("area") String area) {
+        List<PostDto> posts = postService.searchByFestivalArea(area);
+
+        return posts;
+    }
 }

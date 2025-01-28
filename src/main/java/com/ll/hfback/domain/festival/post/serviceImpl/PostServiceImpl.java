@@ -43,10 +43,20 @@ public class PostServiceImpl implements PostService {
         return convertToDetailPostDto(post);
     }
 
-    // 공연 장르별 게시글 조회
+    // 장르별 게시글 조회(축제, 연극, 무용(서양/한국무용), 대중무용, 서양음악(클래식),
+    // 한국음악(국악), 대중음악, 복합, 서커스/마술, 뮤지컬)
     @Override
     public List<PostDto> searchByGenrenm(String genre) {
         List<Post> posts = postRepository.findByGenrenm(genre);
+        return posts.stream()
+                .map(this::convertToPostDto)
+                .collect(Collectors.toList());
+    }
+
+    // 사용자 위치순으로 게시글 조회
+    @Override
+    public List<PostDto> searchByFestivalArea(String area) {
+        List<Post> posts = postRepository.findByFestivalAreaContaining(area);
         return posts.stream()
                 .map(this::convertToPostDto)
                 .collect(Collectors.toList());
