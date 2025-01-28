@@ -2,21 +2,25 @@ package com.ll.hfback.domain.group.chat.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ll.hfback.domain.group.chatRoom.entity.ChatRoom;
+import com.ll.hfback.domain.member.member.entity.Member;
 import com.ll.hfback.global.jpa.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 /**
  * packageName    : com.ll.hfback.domain.group.chat.entity
- * fileName       : Chat
+ * fileName       : MessageReadStatus
  * author         : sungjun
- * date           : 2025-01-21
+ * date           : 2025-01-27
  * description    : 자동 주석 생성
  * ===========================================================
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
- * 2025-01-21        kyd54       최초 생성
+ * 2025-01-27        kyd54       최초 생성
  */
 @Entity
 @Getter
@@ -25,15 +29,16 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @SuperBuilder
 @ToString(callSuper = true)
-public class ChatMessage extends BaseEntity {
+public class MessageReadStatus extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chat_room_id", nullable = false)
     @JsonIgnore
     private ChatRoom chatRoom;
 
-    @Column(nullable = false)
-    private String chatMessageContent;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    @JsonIgnore
+    private Member member;
 
-    @Column(nullable = false)
-    private String nickname;
+    private Long lastReadMessageId;
 }

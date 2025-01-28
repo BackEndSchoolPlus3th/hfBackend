@@ -1,6 +1,7 @@
 package com.ll.hfback.domain.group.chat.service;
 
 import com.ll.hfback.domain.group.chat.request.RequestMessage;
+import com.ll.hfback.domain.group.chat.response.MessageReadStatusResponse;
 import com.ll.hfback.domain.group.chat.response.MessageSearchKeywordsResponse;
 import com.ll.hfback.domain.group.chat.response.ResponseMessage;
 import org.springframework.data.domain.Page;
@@ -31,4 +32,7 @@ public interface ChatMessageService {
     Page<RequestMessage> searchMessages(Long chatRoomId,
                                         int page,
                                         MessageSearchKeywordsResponse messageSearchKeywordsResponse);
+    
+    // 메시지 읽음/안읽음 상태 확인
+    void messageReadStatus(Long chatRoomId, MessageReadStatusResponse messageReadStatusResponse);
 }

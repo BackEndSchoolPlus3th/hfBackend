@@ -1,6 +1,7 @@
 package com.ll.hfback.domain.group.chat.controller;
 
 import com.ll.hfback.domain.group.chat.request.RequestMessage;
+import com.ll.hfback.domain.group.chat.response.MessageReadStatusResponse;
 import com.ll.hfback.domain.group.chat.response.MessageSearchKeywordsResponse;
 import com.ll.hfback.domain.group.chat.response.ResponseMessage;
 import com.ll.hfback.domain.group.chat.service.ChatMessageService;
@@ -22,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/chatRooms/{chatRoom-id}")
 @RequiredArgsConstructor
-public class ChatMessageController {
+public class ApiV1ChatMessageController {
     private final ChatMessageService chatMessageService;
 
     // 채팅 메시지 작성
@@ -48,5 +49,13 @@ public class ChatMessageController {
                                                @RequestBody MessageSearchKeywordsResponse messageSearchKeywordsResponse) {
 
         return chatMessageService.searchMessages(chatRoomId, page, messageSearchKeywordsResponse);
+    }
+
+
+    // 메시지 읽음/안읽음 상태 확인용 필드 수정
+    @PutMapping("/messages/readStatus")
+    public void messageReadStatus(@PathVariable("chatRoom-id") Long chatRoomId,
+                                  @RequestBody MessageReadStatusResponse messageReadStatusResponse) {
+        chatMessageService.messageReadStatus(chatRoomId, messageReadStatusResponse);
     }
 }

@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 /**
  * packageName    : com.ll.hfback.domain.group.chat.request
  * fileName       : RequestMessage
@@ -22,4 +24,8 @@ public class RequestMessage {
     private String nickname;
     @JsonProperty("chatMessageContent")
     private String content;
+    @JsonProperty("messageTimestamp")
+    private LocalDateTime messageTimestamp;
+    @JsonProperty("messageId")
+    private Long messageId;
 }
