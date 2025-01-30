@@ -1,9 +1,12 @@
 package com.ll.hfback.domain.group.chat.serviceImpl;
 
+import com.ll.hfback.domain.group.chat.entity.MessageReadStatus;
 import com.ll.hfback.domain.group.chat.entity.QChatMessage;
-import com.ll.hfback.domain.group.chat.request.RequestMessage;
-import com.ll.hfback.domain.group.chat.response.MessageSearchKeywordsResponse;
+import com.ll.hfback.domain.group.chat.repository.MessageReadStatusRepository;
 import com.ll.hfback.domain.group.chat.response.ResponseMessage;
+import com.ll.hfback.domain.group.chat.request.MessageReadStatusRequest;
+import com.ll.hfback.domain.group.chat.request.MessageSearchKeywordsRequest;
+import com.ll.hfback.domain.group.chat.request.RequestMessage;
 import com.ll.hfback.domain.group.chat.entity.ChatMessage;
 import com.ll.hfback.domain.group.chat.repository.ChatMessageRepository;
 import com.ll.hfback.domain.group.chat.service.ChatMessageService;
@@ -46,16 +49,17 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final Logger logger = LoggerFactory.getLogger(ChatMessageServiceImpl.class.getName());
     private final ChatRoomRepository chatRoomRepository;
+    private final MessageReadStatusRepository messageReadStatusRepository;
 
     // 채팅 메시지 작성
     @Transactional
-    public void writeMessage(Long chatId, ResponseMessage responseMessage) {
+    public void writeMessage(Long chatId, RequestMessage requestMessage) {
         try {
             // 빈 메시지 또는 250자 초과 메시지 검사
-            if (responseMessage.getContent() == null || responseMessage.getContent().trim().isEmpty()) {
+            if (requestMessage.getContent() == null || requestMessage.getContent().trim().isEmpty()) {
                 throw new IllegalArgumentException("채팅 메시지는 비어 있을 수 없습니다.");
             }
-            if (responseMessage.getContent().length() > 250) {
+            if (requestMessage.getContent().length() > 250) {
                 throw new IllegalArgumentException("채팅 메시지는 250자를 넘을 수 없습니다.");
             }
 
@@ -64,13 +68,13 @@ public class ChatMessageServiceImpl implements ChatMessageService {
 
             if(chatRoom != null) {
                 // memberId로 멤버 정보 가져오기
-                Member member = memberRepository.findById(responseMessage.getMemberId()).orElse(null);
+                Member member = memberRepository.findById(requestMessage.getMemberId()).orElse(null);
 
                 // 채팅 메시지 저장
                 ChatMessage chatMessage = ChatMessage.builder()
                         .chatRoom(chatRoom)
                         .nickname(member.getNickname())
-                        .chatMessageContent(responseMessage.getContent())
+                        .chatMessageContent(requestMessage.getContent())
                         .build();
 
                 chatMessageRepository.save(chatMessage);
@@ -96,13 +100,17 @@ public class ChatMessageServiceImpl implements ChatMessageService {
 
     // 채팅 메시지 가져오기
     @Transactional(readOnly = true)
-    public Page<RequestMessage> readMessages(Long chatRoomId, int page) {
+    public Page<ResponseMessage> readMessages(Long chatRoomId, int page) {
         try {
-            Page<ChatMessage> chatMessagesPage = chatMessageRepository.findByChatRoomId(chatRoomId, customPaging(page));
+            Page<ChatMessage> chatMessages = chatMessageRepository.findByChatRoomId(chatRoomId, customPaging(page));
             logger.info("채팅 메시지 가져오기 성공");
             // ChatMessage -> RequestMessage 변환
-            return chatMessagesPage.map(chatMessage ->
-                    new RequestMessage(chatMessage.getNickname(), chatMessage.getChatMessageContent()));
+            return chatMessages.map(chatMessage ->
+                    new ResponseMessage(chatMessage.getNickname(),
+                            chatMessage.getChatMessageContent(),
+                            chatMessage.getCreateDate(),
+                            chatMessage.getId()
+                    ));
         } catch (Exception e) {
             logger.info("채팅 메시지 가져오기 실패");
             throw e;
@@ -125,45 +133,45 @@ public class ChatMessageServiceImpl implements ChatMessageService {
     }
 
     // 조건에 따른 채팅 메시지 검색 기능
-    public Page<RequestMessage> searchMessages(Long chatRoomId,
-                                               int page,
-                                               MessageSearchKeywordsResponse messageSearchKeywordsResponse) {
+    public Page<ResponseMessage> searchMessages(Long chatRoomId,
+                                                int page,
+                                                MessageSearchKeywordsRequest messageSearchKeywordsRequest) {
         try {
             QChatMessage qChatMessage = QChatMessage.chatMessage; // QueryDSL 메타 모델 객체
 
             BooleanBuilder builder = new BooleanBuilder();
 
             // 검색어(keyword)가 있으면 해당 조건 추가
-            if (messageSearchKeywordsResponse != null && messageSearchKeywordsResponse.getKeyword() != null) {
-                String keyword = messageSearchKeywordsResponse.getKeyword();
+            if (messageSearchKeywordsRequest != null && messageSearchKeywordsRequest.getKeyword() != null) {
+                String keyword = messageSearchKeywordsRequest.getKeyword();
                 builder.and(qChatMessage.chatMessageContent.containsIgnoreCase(keyword)); // 대소문자 구분 없이 검색
             }
 
             // 닉네임(nickname)이 있으면 해당 조건 추가
-            if (messageSearchKeywordsResponse.getNickname() != null) {
-                String nickname = messageSearchKeywordsResponse.getNickname();
+            if (messageSearchKeywordsRequest.getNickname() != null) {
+                String nickname = messageSearchKeywordsRequest.getNickname();
                 builder.and(qChatMessage.nickname.containsIgnoreCase(nickname)); // 대소문자 구분 없이 검색
             }
 
             // 날짜 처리: 날짜를 LocalDateTime으로 변환하여 비교
             // startDate만 있을 경우
-            if (messageSearchKeywordsResponse.getStartDate() != null) {
-                LocalDate startDate = messageSearchKeywordsResponse.getStartDate();
+            if (messageSearchKeywordsRequest.getStartDate() != null) {
+                LocalDate startDate = messageSearchKeywordsRequest.getStartDate();
                 LocalDateTime startDateTime = startDate.atStartOfDay(); // startDate를 00:00:00로 변환
                 builder.and(qChatMessage.createDate.goe(startDateTime)); // startDate부터 최근까지 메시지 검색
             }
 
             // endDate만 있을 경우
-            if (messageSearchKeywordsResponse.getEndDate() != null) {
-                LocalDate endDate = messageSearchKeywordsResponse.getEndDate();
+            if (messageSearchKeywordsRequest.getEndDate() != null) {
+                LocalDate endDate = messageSearchKeywordsRequest.getEndDate();
                 LocalDateTime endDateTime = endDate.atTime(23, 59, 59, 999999999); // endDate를 23:59:59로 변환
                 builder.and(qChatMessage.createDate.loe(endDateTime)); // 처음부터 endDate까지 메시지 검색
             }
 
             // startDate와 endDate 모두 있을 경우
-            if (messageSearchKeywordsResponse.getStartDate() != null && messageSearchKeywordsResponse.getEndDate() != null) {
-                LocalDate startDate = messageSearchKeywordsResponse.getStartDate();
-                LocalDate endDate = messageSearchKeywordsResponse.getEndDate();
+            if (messageSearchKeywordsRequest.getStartDate() != null && messageSearchKeywordsRequest.getEndDate() != null) {
+                LocalDate startDate = messageSearchKeywordsRequest.getStartDate();
+                LocalDate endDate = messageSearchKeywordsRequest.getEndDate();
                 LocalDateTime startDateTime = startDate.atStartOfDay(); // startDate를 00:00:00로 변환
                 LocalDateTime endDateTime = endDate.atTime(23, 59, 59, 999999999); // endDate를 23:59:59로 변환
                 builder.and(qChatMessage.createDate.between(startDateTime, endDateTime)); // 두 날짜 사이의 메시지 검색
@@ -178,10 +186,38 @@ public class ChatMessageServiceImpl implements ChatMessageService {
             logger.info("조건에 따른 채팅 메시지 검색 성공");
             // ChatMessage -> RequestMessage 변환
             return searchMessages.map(chatMessage ->
-                    new RequestMessage(chatMessage.getNickname(), chatMessage.getChatMessageContent()));
+                    new ResponseMessage(chatMessage.getNickname(),
+                            chatMessage.getChatMessageContent(),
+                            chatMessage.getCreateDate(),
+                            chatMessage.getId()));
         } catch (Exception e) {
             logger.info("조건에 따른 채팅 메시지 검색 실패");
             throw e;
         }
+    }
+
+    // 메시지 읽음/안읽음 상태 확인
+    @Transactional
+    public void messageReadStatus(Long chatRoomId, MessageReadStatusRequest messageReadStatusRequest) {
+        try {
+            MessageReadStatus readStatus = messageReadStatusRepository
+                    .findByChatRoomIdAndMemberId(chatRoomId, messageReadStatusRequest.getMemberId())
+                    .orElse(MessageReadStatus.builder()
+                            .chatRoom(chatRoomRepository.findById(chatRoomId).orElseThrow(() -> new RuntimeException("ChatRoom not found")))
+                            .member(memberRepository.findById(messageReadStatusRequest.getMemberId()).orElseThrow(() -> new RuntimeException("Member not found")))
+                            .lastReadMessageId(messageReadStatusRequest.getMessageId())
+                            .build());
+
+            readStatus.setLastReadMessageId(messageReadStatusRequest.getMessageId());
+            messageReadStatusRepository.save(readStatus);
+
+            logger.info("ChatRoom ID: {}, Member ID: {} - 마지막 읽은 메시지 ID가 성공적으로 업데이트되었습니다.",
+                    chatRoomId,
+                    messageReadStatusRequest.getMemberId());
+        } catch (Exception e) {
+            logger.error("마지막 읽은 메시지 업데이트 실패");
+            throw e;
+        }
+
     }
 }

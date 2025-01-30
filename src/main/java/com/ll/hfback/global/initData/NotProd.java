@@ -1,12 +1,8 @@
 package com.ll.hfback.global.initData;
 
-import com.ll.hfback.domain.festival.comment.form.AddCommentForm;
-import com.ll.hfback.domain.festival.comment.form.UpdateCommentForm;
 import com.ll.hfback.domain.festival.comment.service.CommentService;
-import com.ll.hfback.domain.group.chat.response.ResponseMessage;
+import com.ll.hfback.domain.group.chat.request.RequestMessage;
 import com.ll.hfback.domain.group.chat.service.ChatMessageService;
-import com.ll.hfback.domain.group.chatRoom.form.CreateChatRoomForm;
-import com.ll.hfback.domain.group.chatRoom.form.UpdateChatRoomForm;
 import com.ll.hfback.domain.group.chatRoom.service.ChatRoomService;
 import com.ll.hfback.domain.member.auth.dto.SignupRequest;
 import com.ll.hfback.domain.member.auth.service.AuthService;
@@ -207,10 +203,10 @@ public class NotProd {
                         default -> member3;
                     };
 
-                    ResponseMessage responseMessage = new ResponseMessage(sender.getId(), messages.get(i));
+                    RequestMessage requestMessage = new RequestMessage(sender.getId(), messages.get(i));
 
                     // 메시지 저장 호출
-                    chatMessageService.writeMessage(1L, responseMessage
+                    chatMessageService.writeMessage(1L, requestMessage
                     );
                 }
 

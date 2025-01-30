@@ -1,24 +1,22 @@
 package com.ll.hfback.domain.group.chat.request;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 /**
- * packageName    : com.ll.hfback.domain.group.chat.dto.response
- * fileName       : ResponseMessage
+ * packageName    : com.ll.hfback.domain.group.chat.response
+ * fileName       : MessageReadStatusResponse
  * author         : sungjun
- * date           : 2025-01-22
+ * date           : 2025-01-28
  * description    : 자동 주석 생성
  * ===========================================================
  * DATE              AUTHOR             NOTE
  * -----------------------------------------------------------
- * 2025-01-22        kyd54       최초 생성
+ * 2025-01-28        kyd54       최초 생성
  */
 @Getter
 @Setter
-@AllArgsConstructor
-public class RequestMessage {
+public class MessageReadStatusRequest {
     private Long memberId;
-    private String content;
+    private Long messageId;
 }

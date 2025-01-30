@@ -1,4 +1,4 @@
-package com.ll.hfback.domain.group.chat.response;
+package com.ll.hfback.domain.group.chat.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,7 +22,7 @@ import java.time.LocalDate;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class MessageSearchKeywordsResponse {
+public class MessageSearchKeywordsRequest {
     private String keyword;
     private String nickname;
     private LocalDate startDate;
