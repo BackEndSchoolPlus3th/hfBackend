@@ -87,14 +87,13 @@ public class ApiServiceImpl implements ApiService {
 
     // KOPIS에서 받아온 xml데이터를 Post객체로 변환
     @Override
-    @Transactional
     public List<Post> parseXmlToEntity(String xml) throws Exception {
         // XML을 Java 객체로 파싱하기 위한 XmlMapper 인스턴스를 생성
         XmlMapper xmlMapper = new XmlMapper();
 
         // XML 문자열을 Post 객체의 리스트로 파싱
         List<Post> kopisEntity = xmlMapper.readValue(xml, new TypeReference<List<Post>>() {});
-
+        
         // 오늘 날짜를 기준으로 과거의 이벤트 필터링
         LocalDate today = LocalDate.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");

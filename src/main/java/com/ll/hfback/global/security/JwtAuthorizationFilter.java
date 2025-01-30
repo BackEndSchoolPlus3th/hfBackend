@@ -28,7 +28,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
       FilterChain filterChain) {
     if (request.getRequestURI().equals("/api/v1/auth/login") ||
             request.getRequestURI().equals("/api/v1/auth/logout") ||
-            request.getRequestURI().equals("/api/v1/Posts/**") ||
+            request.getRequestURI().startsWith("/api/v1/posts/") ||
             request.getRequestURI().equals("/ws/chat") || // 웹소켓 구독 경로
             request.getRequestURI().startsWith("/api/v1/chatRooms/") // 채팅 관련 요청 URI 인증 제외 처리
     ) {
@@ -36,8 +36,21 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
       return;
     }
 
-    Cookie[] cookies = req.getCookies();
-    if (cookies == null || cookies.length == 0) {
+//    // Cookie에서 accessToken값 가져오기
+//    Cookie[] cookies = req.getCookies();
+//    if (cookies == null || cookies.length == 0) {
+//      response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+//      response.setContentType("application/json");
+//      response.setCharacterEncoding("UTF-8");
+//      response.getWriter().write("{\"message\": \"로그인이 필요합니다.\"}");
+//      return;
+//    }
+//
+//    String accessToken = _getCookie("accessToken");
+
+    // 헤더에서 Authorization 값을 가져오기 - 보안적으로 우수하고 일반적으로 많이 사용하는 방식
+    String authorizationHeader = request.getHeader("Authorization");
+    if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
       response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
       response.setContentType("application/json");
       response.setCharacterEncoding("UTF-8");
@@ -45,7 +58,9 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
       return;
     }
 
-    String accessToken = _getCookie("accessToken");
+    // Bearer 토큰 부분만 추출
+    String accessToken = authorizationHeader.substring(7); // "Bearer " 이후의 토큰만 가져옴
+
     // accessToken 검증 or refreshToken 발급
     if (!accessToken.isBlank()) {
       // 토큰 유효기간 검증

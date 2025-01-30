@@ -10,6 +10,7 @@ import lombok.Setter;
 public class PostDto {
     private String festivalId;
     private String festivalName;
+    private String festivalArea;
     private String festivalStartDate;
     private String festivalEndDate;
     private String festivalUrl;

@@ -1,7 +1,6 @@
 package com.ll.hfback.domain.festival.comment.service;
 
 import com.ll.hfback.domain.festival.comment.dto.CommentDto;
-import com.ll.hfback.domain.festival.comment.entity.Comment;
 import com.ll.hfback.domain.festival.comment.form.AddCommentForm;
 import com.ll.hfback.domain.festival.comment.form.UpdateCommentForm;
 import jakarta.validation.Valid;
@@ -22,7 +21,4 @@ public interface CommentService {
 
     // 해당 댓글 삭제
     void deleteComment(Long commentId);
-
-    // Comment -> CommentDto 변환
-    CommentDto convertToDto(Comment comment);
 }

@@ -14,4 +14,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     // 공연 장르별 게시글 조회
     List<Post> findByGenrenm(String genre);
+
+    // 사용자 위치순으로 게시글 조회
+    List<Post> findByFestivalAreaContaining(String area);
 }

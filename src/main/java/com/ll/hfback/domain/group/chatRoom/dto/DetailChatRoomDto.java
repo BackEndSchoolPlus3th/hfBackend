@@ -18,9 +18,12 @@ public class DetailChatRoomDto {
     private String roomTitle;
     private String roomContent;
     @Convert(converter = StringListConverter.class)
+    private List<String> joinMemberIdList;
     private List<String> joinMemberNicknames;
     @Convert(converter = StringListConverter.class)
+    private List<String> waitingMemberIdList;
     private List<String> waitingMemberNicknames;
     private Long roomMemberLimit;
     private int joinMemberNum;
+    private int waitMemberNum;
 }
