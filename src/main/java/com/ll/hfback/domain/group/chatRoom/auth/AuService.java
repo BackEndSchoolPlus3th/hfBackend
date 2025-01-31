@@ -6,6 +6,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class AuService {
     private final MemberRepository memberRepository;
@@ -16,11 +18,11 @@ public class AuService {
 
     // 이메일로 member 조회 및 반환
     public Member getMemberByEmail(String email) {
-        Member member = memberRepository.findByEmail(email);
-        if (member == null) {
+        Optional<Member> member = memberRepository.findByEmail(email);
+        if (member.isEmpty()) {
             throw new IllegalStateException("사용자를 찾을 수 없습니다.");
         }
-        return member;
+        return member.get();
     }
 
     // 현재 로그인한 사용자의 고유 ID를 가져오는 메서드

@@ -23,6 +23,27 @@ spring:
         format_sql: true
         highlight_sql: true
         use_sql_comments: true
+  security:
+    oauth2:
+      client:
+        registration:
+          kakao:
+            scope: profile_nickname, profile_image, account_email
+            authorization-grant-type: authorization_code
+            redirect-uri: "http://localhost:8090/login/oauth2/code/{registrationId}"    # 리디렉션 URI
+            client-name: Kakao    # 클라이언트 이름
+          google:
+            scope:
+              - email
+              - profile
+            redirect-uri: "http://localhost:8090/login/oauth2/code/{registrationId}"
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me    # 사용자 정보 조회 URI
+            user-name-attribute: id    # 사용자 정보에서 사용자 이름에 해당하는 속성
+
 
 logging:
   level:

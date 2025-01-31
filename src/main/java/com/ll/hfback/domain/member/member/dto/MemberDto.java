@@ -1,14 +1,20 @@
 package com.ll.hfback.domain.member.member.dto;
 
 import com.ll.hfback.domain.member.member.entity.Member;
-import com.ll.hfback.domain.member.member.entity.Member.*;
+import com.ll.hfback.domain.member.member.entity.Member.Gender;
+import com.ll.hfback.domain.member.member.entity.Member.MemberState;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 public class MemberDto {
+    @NotNull
     private final Long id;
+    private final LocalDateTime createDate;
+    @NotNull
     private final String nickname;
     private final LocalDate birthday;
     private final String location;
@@ -26,5 +32,6 @@ public class MemberDto {
         this.phoneNumber = member.getPhoneNumber();
         this.profilePath = member.getProfilePath();
         this.state = member.getState();
+        this.createDate = member.getCreateDate();
     }
 }

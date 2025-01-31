@@ -25,26 +25,35 @@ repositories {
 }
 
 dependencies {
-	implementation("org.springframework.boot:spring-boot-starter-data-elasticsearch")
-	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-	implementation("org.springframework.boot:spring-boot-starter-security")
+	// Spring Boot Starters
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
+	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+	implementation("org.springframework.boot:spring-boot-starter-data-elasticsearch")
+	implementation("org.springframework.boot:spring-boot-starter-security")
+	implementation("org.springframework.boot:spring-boot-starter-websocket:3.4.1")
+	implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
+
+	// JWT
+	implementation("io.jsonwebtoken:jjwt-api:0.12.6")
+	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.6")
+	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.6")
+
+	// Lombok
 	compileOnly("org.projectlombok:lombok")
+	annotationProcessor("org.projectlombok:lombok")
+
+	// Database
 	runtimeOnly("com.h2database:h2")
 	runtimeOnly("com.mysql:mysql-connector-j")
-	annotationProcessor("org.projectlombok:lombok")
+
+	// Test
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
-
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-	// WebSocket, STOMP
-	implementation("org.springframework.boot:spring-boot-starter-websocket:3.4.1")
-
-	// JWT & Spring Security
 	testImplementation("org.springframework.security:spring-security-test")
-	implementation ("io.jsonwebtoken:jjwt-api:0.11.5")
-	runtimeOnly ("io.jsonwebtoken:jjwt-impl:0.11.5")
-	runtimeOnly ("io.jsonwebtoken:jjwt-jackson:0.11.5")
+
+	// Amazon S3 라이브러리
+	implementation ("com.amazonaws:aws-java-sdk-s3:1.12.772")
 
 	// QueryDSL
 	implementation("com.querydsl:querydsl-jpa:5.0.0:jakarta")

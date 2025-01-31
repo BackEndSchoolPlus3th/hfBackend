@@ -1,70 +1,131 @@
 package com.ll.hfback.domain.member.auth.service;
 
-import com.ll.hfback.domain.member.auth.dto.SignupRequest;
+import com.ll.hfback.domain.member.auth.entity.SocialAccount;
 import com.ll.hfback.domain.member.auth.repository.AuthRepository;
 import com.ll.hfback.domain.member.member.entity.Member;
+import com.ll.hfback.domain.member.member.entity.Member.LoginType;
 import com.ll.hfback.domain.member.member.repository.MemberRepository;
-import com.ll.hfback.global.jwt.JwtProvider;
-import com.ll.hfback.global.rsData.RsData;
-import com.ll.hfback.global.security.SecurityUser;
+import com.ll.hfback.global.exceptions.ErrorCode;
+import com.ll.hfback.global.exceptions.ServiceException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
+    private final AuthTokenService authTokenService;
     private final AuthRepository authRepository;
     private final PasswordEncoder passwordEncoder;
     private final MemberRepository memberRepository;
-    private final JwtProvider jwtProvider;
 
-    public Member signup(SignupRequest request) {
-        Member CheckedSignUpMember = memberRepository.findByEmail(request.getEmail());
-        if (CheckedSignUpMember != null) {
-            throw new IllegalArgumentException("이미 존재하는 회원입니다.");
+
+    public Member signup(
+            String email, String password, String nickname,
+            String loginType, String providerId, String providerEmail, String profilePath
+        ) {
+        Optional<Member> existingMember = memberRepository.findByEmail(email);
+        if (existingMember.isPresent()) {
+            throw new ServiceException(ErrorCode.DUPLICATE_EMAIL);
         }
 
         Member member = Member.builder()
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .nickname(request.getNickname())
-                .gender(request.getGender())
-                .mkAlarm(request.isMkAlarm())
-                .phoneNumber(request.getPhoneNumber())
+                .email(email)
+                .password(
+                    loginType.equals(LoginType.SELF) ? passwordEncoder.encode(password) : null
+                )
+                .nickname(nickname)
+                .loginType(loginType)
+                .profilePath(profilePath)
+                .apiKey(UUID.randomUUID().toString())
                 .build();
 
-        String refreshToken = jwtProvider.genRefreshToken(member);
-        member.setRefreshToken(refreshToken);
+        if (providerId != null) {
+            _connectSocialAccount(member, loginType, providerId, providerEmail);
+        }
 
-        return authRepository.save(member);
+        return memberRepository.save(member);
     }
 
-    public boolean validateToken(String token) {
-        return jwtProvider.verify(token);
+    public Optional<Member> findByEmail(String email) {
+        return memberRepository.findByEmail(email);
     }
 
-    public RsData<String> refreshAccessToken(String refreshToken) {
-        Member member = memberRepository.findByRefreshToken(refreshToken)
-            .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 토큰입니다."));
-
-        String accessToken = jwtProvider.genAccessToken(member);
-
-        return new RsData<>("200", "토큰 갱신에 성공하였습니다.", accessToken);
+    public Optional<Member> findByApiKey(String apiKey) {
+        return authRepository.findByApiKey(apiKey);
     }
 
-    public SecurityUser getUserFromAccessToken(String accessToken) {
-        Map<String, Object> payloadBody = jwtProvider.getClaims(accessToken);
-        long id = (int) payloadBody.get("id");
-        String email = (String) payloadBody.get("email");
-        List<GrantedAuthority> authorities = new ArrayList<>();
-        return new SecurityUser(id, email, "", authorities);
+    public String genAccessToken(Member member) {
+        return authTokenService.genAccessToken(member);
+    }
+
+    public String genAuthToken(Member member) {
+        return member.getApiKey() + " " + genAccessToken(member);
+    }
+
+    public Member getMemberFromAccessToken(String accessToken) {
+        Map<String, Object> payload = authTokenService.payload(accessToken);
+        if (payload == null) {
+            return null;
+        }
+        long id = (long) payload.get("id");
+        String email = (String) payload.get("email");
+        String nickname = (String) payload.get("nickname");
+        String profilePath = (String) payload.get("profilePath");
+        String role = (String) payload.get("role");
+
+        return new Member(id, email, nickname, profilePath, Member.MemberRole.valueOf(role));
+    }
+
+    public long count() {
+        return memberRepository.count();
+    }
+
+    public Member modifyOrSignup(
+        String email, String nickname,
+        String loginType, String profilePath, String providerId
+    ) {
+        Optional<Member> existingMember = findByEmail(email);
+        if (existingMember.isPresent()) {
+            Member member = existingMember.get();
+            _modify(member, nickname, loginType, providerId, email, profilePath);
+            return member;
+        }
+        return signup(email, null, nickname, loginType, providerId, email, profilePath);
+    }
+
+    private void _modify(
+            Member member, String nickname, String loginType,
+            String providerId, String providerEmail, String profilePath
+        ) {
+        if (!LoginType.isValid(loginType)) {
+            throw new ServiceException(ErrorCode.INVALID_LOGIN_TYPE);
+        }
+
+        _connectSocialAccount(member, loginType, providerId, providerEmail);
+
+        member.setLoginType(loginType);
+        member.setNickname(nickname);
+        member.setProfilePath(profilePath);
+    }
+
+    private void _connectSocialAccount(
+        Member member, String loginType,
+        String providerId, String providerEmail
+    ) {
+        SocialAccount socialAccount = member.getSocialAccountOrCreate();
+
+        if (LoginType.KAKAO.equals(loginType)) {
+            socialAccount.connectKakao(providerId, providerEmail);
+
+        } else if (LoginType.GOOGLE.equals(loginType)) {
+            socialAccount.connectGoogle(providerId, providerEmail);
+        }
     }
 
 }

@@ -22,11 +22,11 @@ import static lombok.AccessLevel.PROTECTED;
 public class BaseEntity {
   @Id
   @GeneratedValue(strategy = IDENTITY)
+  @Setter(AccessLevel.PROTECTED)
   @EqualsAndHashCode.Include
   private Long id;
 
   @CreatedDate
-  @Getter
-  @Column(nullable = false)
+  @Setter(AccessLevel.PRIVATE)
   private LocalDateTime createDate;
 }
