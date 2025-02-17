@@ -23,11 +23,11 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/chatRooms/{chatRoom-id}")
+@RequestMapping("/api/v2/chatRooms/{chatRoom-id}")
 public class ApiV1ChatMessageDocController {
 
     private final ChatMessageDocService chatMessageDocService;
-    @GetMapping("/messages/search/eks")
+    @GetMapping("/messages/search")
     public RsData<Page<ResponseMessage>> searchMessages (@PathVariable("chatRoom-id") Long chatRoomId,
                                                          @RequestParam(value = "page", defaultValue = "0") int page,
                                                          @ModelAttribute MessageSearchKeywordsRequest messageSearchKeywordsRequest, @LoginUser Member loginUser) {
